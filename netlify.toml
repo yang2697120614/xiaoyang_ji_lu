@@ -1,0 +1,3 @@
+[build]
+  command = "echo 'Building medication calendar...'"
+  publish = "."
