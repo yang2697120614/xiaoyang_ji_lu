@@ -16,16 +16,15 @@
                     colors: {
                         primary: '#3b82f6', // 医疗蓝
                         secondary: '#60a5fa',
-                        accent: '#2563eb',
+                        accent: '#f97316', // 对比色，用于突出显示
                         light: '#f3f4f6',
                         dark: '#1e3a8a'
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
-                    boxShadow: {
-                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     }
                 }
             }
@@ -34,178 +33,200 @@
     <style type="text/tailwindcss">
         @layer utilities {
             .glass-effect {
-                background: rgba(255, 255, 255, 0.7);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
+                @apply bg-white bg-opacity-80 backdrop-blur-md;
             }
-            .calendar-day {
-                aspect-ratio: 1/1;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                transition: all 0.3s ease;
+            .card-shadow {
+                @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
             }
-            .calendar-day:hover:not(.empty) {
-                transform: translateY(-3px);
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2;
             }
-            .dose-highlight {
-                animation: pulse 2s infinite;
+            .btn-secondary {
+                @apply bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2;
             }
-            @keyframes pulse {
-                0% {
-                    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-                }
-                70% {
-                    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-                }
-                100% {
-                    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-                }
+            .btn-accent {
+                @apply bg-accent hover:bg-accent/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2;
             }
-            .slide-in {
-                animation: slideIn 0.5s ease forwards;
+            .input-field {
+                @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300;
             }
-            @keyframes slideIn {
-                from {
-                    transform: translateY(20px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateY(0);
-                    opacity: 1;
-                }
+            .badge {
+                @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
             }
-            .fade-in {
-                animation: fadeIn 0.5s ease forwards;
+            .badge-primary {
+                @apply bg-primary/20 text-primary;
             }
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                }
-                to {
-                    opacity: 1;
-                }
+            .badge-accent {
+                @apply bg-accent/20 text-accent;
             }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen font-sans text-gray-800">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <!-- 头部标题 -->
-        <header class="text-center mb-8 slide-in">
-            <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-primary mb-2">药物用量日历</h1>
-            <p class="text-gray-600">轻松追踪每日药物服用量，避免漏服或误服</p>
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- 顶部导航 -->
+        <header class="mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary text-white p-3 rounded-full">
+                        <i class="fa fa-medkit text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">药物用量日历</h1>
+                </div>
+                <button id="settingsBtn" class="btn-secondary">
+                    <i class="fa fa-cog"></i>
+                    <span>设置</span>
+                </button>
+            </div>
         </header>
 
-        <!-- 主要内容区 -->
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- 设置面板 -->
-            <section class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-card p-6 mb-6 slide-in" style="animation-delay: 0.1s">
-                    <h2 class="text-xl font-semibold text-primary mb-4 flex items-center">
-                        <i class="fa fa-sliders mr-2"></i> 剂量设置
-                    </h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label for="dose1" class="block text-sm font-medium text-gray-700 mb-1">剂量 1 (片)</label>
-                            <div class="flex">
-                                <input type="number" id="dose1" step="0.25" min="0.25" value="1.5" 
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                                <span class="bg-gray-100 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg text-gray-500">片</span>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="dose2" class="block text-sm font-medium text-gray-700 mb-1">剂量 2 (片)</label>
-                            <div class="flex">
-                                <input type="number" id="dose2" step="0.25" min="0.25" value="1.75" 
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                                <span class="bg-gray-100 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg text-gray-500">片</span>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
-                            <input type="date" id="startDate" 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                        </div>
-                        <button id="saveSettings" class="w-full bg-primary hover:bg-accent text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
-                            <i class="fa fa-save mr-2"></i> 保存设置
-                        </button>
+        <!-- 主内容区 -->
+        <main class="glass-effect rounded-2xl p-4 md:p-6 card-shadow">
+            <!-- 日历控制区 -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <h2 id="currentMonth" class="text-xl font-semibold text-gray-800"></h2>
+                <div class="flex gap-2">
+                    <button id="prevMonth" class="btn-secondary py-1 px-3">
+                        <i class="fa fa-chevron-left"></i>
+                    </button>
+                    <button id="todayBtn" class="btn-primary py-1 px-3">
+                        <i class="fa fa-calendar-o"></i>
+                        <span>今天</span>
+                    </button>
+                    <button id="nextMonth" class="btn-secondary py-1 px-3">
+                        <i class="fa fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 日历网格 -->
+            <div class="grid grid-cols-7 gap-2 mb-6">
+                <!-- 星期标题 -->
+                <div class="text-center font-medium text-gray-600 py-2">日</div>
+                <div class="text-center font-medium text-gray-600 py-2">一</div>
+                <div class="text-center font-medium text-gray-600 py-2">二</div>
+                <div class="text-center font-medium text-gray-600 py-2">三</div>
+                <div class="text-center font-medium text-gray-600 py-2">四</div>
+                <div class="text-center font-medium text-gray-600 py-2">五</div>
+                <div class="text-center font-medium text-gray-600 py-2">六</div>
+                
+                <!-- 日历单元格将通过JavaScript动态生成 -->
+                <div id="calendarGrid" class="col-span-7 grid grid-cols-7 gap-2">
+                    <!-- 日历内容 -->
+                </div>
+            </div>
+
+            <!-- 今日用量提示 -->
+            <div id="todayInfo" class="bg-blue-50 border-l-4 border-primary p-4 rounded-lg mb-6 animate-pulse-slow">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary text-white p-2 rounded-full">
+                        <i class="fa fa-exclamation-circle"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">今日用量</h3>
+                        <p id="todayDosage" class="text-lg font-bold text-primary"></p>
                     </div>
                 </div>
+            </div>
 
-                <!-- 今日提示 -->
-                <div class="bg-white rounded-xl shadow-card p-6 slide-in" style="animation-delay: 0.2s">
-                    <h2 class="text-xl font-semibold text-primary mb-4 flex items-center">
-                        <i class="fa fa-calendar-check-o mr-2"></i> 今日提示
-                    </h2>
-                    <div id="todayInfo" class="text-center py-4">
-                        <p class="text-gray-500 mb-2">加载中...</p>
-                        <div id="todayDose" class="text-3xl font-bold text-primary mt-2">--</div>
-                    </div>
+            <!-- 用量说明 -->
+            <div class="flex flex-wrap gap-4 justify-center mb-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-full bg-primary"></div>
+                    <span class="text-sm text-gray-600">用量 A</span>
                 </div>
-            </section>
-
-            <!-- 日历面板 -->
-            <section class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow-card p-6 slide-in" style="animation-delay: 0.3s">
-                    <!-- 日历导航 -->
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-semibold text-primary flex items-center">
-                            <i class="fa fa-calendar mr-2"></i> <span id="currentMonth">2023年7月</span>
-                        </h2>
-                        <div class="flex space-x-2">
-                            <button id="prevMonth" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                <i class="fa fa-chevron-left text-gray-600"></i>
-                            </button>
-                            <button id="nextMonth" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                <i class="fa fa-chevron-right text-gray-600"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 星期标题 -->
-                    <div class="grid grid-cols-7 gap-1 mb-2">
-                        <div class="text-center text-sm font-medium text-gray-500 py-2">日</div>
-                        <div class="text-center text-sm font-medium text-gray-500 py-2">一</div>
-                        <div class="text-center text-sm font-medium text-gray-500 py-2">二</div>
-                        <div class="text-center text-sm font-medium text-gray-500 py-2">三</div>
-                        <div class="text-center text-sm font-medium text-gray-500 py-2">四</div>
-                        <div class="text-center text-sm font-medium text-gray-500 py-2">五</div>
-                        <div class="text-center text-sm font-medium text-gray-500 py-2">六</div>
-                    </div>
-
-                    <!-- 日历网格 -->
-                    <div id="calendarGrid" class="grid grid-cols-7 gap-1">
-                        <!-- 日历单元格将通过JavaScript动态生成 -->
-                    </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-full bg-accent"></div>
+                    <span class="text-sm text-gray-600">用量 B</span>
                 </div>
-            </section>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-full bg-gray-300"></div>
+                    <span class="text-sm text-gray-600">过去日期</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded-full ring-2 ring-offset-2 ring-primary"></div>
+                    <span class="text-sm text-gray-600">今天</span>
+                </div>
+            </div>
         </main>
 
-        <!-- 底部信息 -->
-        <footer class="mt-8 text-center text-gray-500 text-sm">
-            <p>© 2025 药物用量日历 | 设计与开发</p>
-        </footer>
-    </div>
+        <!-- 设置面板 (默认隐藏) -->
+        <div id="settingsPanel" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 card-shadow transform transition-all duration-300 scale-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">设置药物用量</h2>
+                    <button id="closeSettings" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="settingsForm" class="space-y-6">
+                    <div>
+                        <label for="dosageA" class="block text-sm font-medium text-gray-700 mb-1">用量 A (片)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                <i class="fa fa-pills"></i>
+                            </span>
+                            <input type="number" id="dosageA" name="dosageA" step="0.25" min="0" class="input-field pl-10" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="dosageB" class="block text-sm font-medium text-gray-700 mb-1">用量 B (片)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                <i class="fa fa-pills"></i>
+                            </span>
+                            <input type="number" id="dosageB" name="dosageB" step="0.25" min="0" class="input-field pl-10" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="date" id="startDate" name="startDate" class="input-field pl-10" required>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">从这一天开始计算用量循环</p>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button type="submit" class="btn-primary w-full">
+                            <i class="fa fa-save"></i>
+                            <span>保存设置</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-    <!-- 日期详情模态框 -->
-    <div id="dateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden fade-in">
-        <div class="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="modalDate" class="text-xl font-semibold text-primary">2023年7月21日</h3>
-                <button id="closeModal" class="text-gray-400 hover:text-gray-600">
-                    <i class="fa fa-times text-xl"></i>
-                </button>
-            </div>
-            <div class="text-center py-4">
-                <p class="text-gray-600 mb-2">今日药物用量</p>
-                <div id="modalDose" class="text-4xl font-bold text-primary">1.5 片</div>
-            </div>
-            <div class="flex justify-center mt-6">
-                <button id="confirmModal" class="bg-primary hover:bg-accent text-white font-medium py-2 px-6 rounded-lg transition-colors duration-300">
-                    我知道了
-                </button>
+        <!-- 日期详情弹窗 (默认隐藏) -->
+        <div id="dateDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 card-shadow transform transition-all duration-300 scale-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="modalDateTitle" class="text-xl font-bold text-gray-800"></h2>
+                    <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="text-center py-4">
+                    <div id="modalDosage" class="text-4xl font-bold mb-2"></div>
+                    <div id="modalDosageType" class="badge"></div>
+                </div>
+                
+                <div class="flex justify-center gap-4 mt-6">
+                    <button id="prevDate" class="btn-secondary">
+                        <i class="fa fa-chevron-left"></i>
+                        <span>前一天</span>
+                    </button>
+                    <button id="nextDate" class="btn-secondary">
+                        <span>后一天</span>
+                        <i class="fa fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -213,231 +234,377 @@
     <script>
         // 全局变量
         let currentDate = new Date();
-        let dose1 = 1.5;
-        let dose2 = 1.75;
-        let startDate = new Date();
-        startDate.setHours(0, 0, 0, 0); // 重置时间部分
-
+        let settings = {
+            dosageA: 1.5,
+            dosageB: 1.75,
+            startDate: new Date()
+        };
+        
         // DOM 元素
         const calendarGrid = document.getElementById('calendarGrid');
         const currentMonthEl = document.getElementById('currentMonth');
+        const todayInfoEl = document.getElementById('todayInfo');
+        const todayDosageEl = document.getElementById('todayDosage');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const closeSettings = document.getElementById('closeSettings');
+        const settingsForm = document.getElementById('settingsForm');
+        const dosageAInput = document.getElementById('dosageA');
+        const dosageBInput = document.getElementById('dosageB');
+        const startDateInput = document.getElementById('startDate');
         const prevMonthBtn = document.getElementById('prevMonth');
         const nextMonthBtn = document.getElementById('nextMonth');
-        const dose1Input = document.getElementById('dose1');
-        const dose2Input = document.getElementById('dose2');
-        const startDateInput = document.getElementById('startDate');
-        const saveSettingsBtn = document.getElementById('saveSettings');
-        const todayInfoEl = document.getElementById('todayInfo');
-        const todayDoseEl = document.getElementById('todayDose');
-        const dateModal = document.getElementById('dateModal');
-        const modalDate = document.getElementById('modalDate');
-        const modalDose = document.getElementById('modalDose');
-        const closeModalBtn = document.getElementById('closeModal');
-        const confirmModalBtn = document.getElementById('confirmModal');
-
+        const todayBtn = document.getElementById('todayBtn');
+        const dateDetailModal = document.getElementById('dateDetailModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalDateTitle = document.getElementById('modalDateTitle');
+        const modalDosage = document.getElementById('modalDosage');
+        const modalDosageType = document.getElementById('modalDosageType');
+        const prevDateBtn = document.getElementById('prevDate');
+        const nextDateBtn = document.getElementById('nextDate');
+        
         // 初始化
         function init() {
             // 从本地存储加载设置
             loadSettings();
             
-            // 设置当前日期
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            startDateInput.valueAsDate = startDate;
+            // 更新设置表单
+            updateSettingsForm();
             
             // 渲染日历
             renderCalendar(currentDate);
             
-            // 更新今日提示
+            // 更新今日用量信息
             updateTodayInfo();
             
             // 添加事件监听器
+            addEventListeners();
+        }
+        
+        // 从本地存储加载设置
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('medicationSettings');
+            if (savedSettings) {
+                settings = JSON.parse(savedSettings);
+                settings.startDate = new Date(settings.startDate);
+            }
+            
+            // 设置默认开始日期为今天
+            if (!settings.startDate || isNaN(settings.startDate.getTime())) {
+                settings.startDate = new Date();
+            }
+        }
+        
+        // 保存设置到本地存储
+        function saveSettings() {
+            localStorage.setItem('medicationSettings', JSON.stringify(settings));
+        }
+        
+        // 更新设置表单
+        function updateSettingsForm() {
+            dosageAInput.value = settings.dosageA;
+            dosageBInput.value = settings.dosageB;
+            
+            // 格式化日期为 YYYY-MM-DD
+            const startDateFormatted = settings.startDate.toISOString().split('T')[0];
+            startDateInput.value = startDateFormatted;
+        }
+        
+        // 渲染日历
+        function renderCalendar(date) {
+            // 清空日历网格
+            calendarGrid.innerHTML = '';
+            
+            // 获取当前月份和年份
+            const currentMonth = date.getMonth();
+            const currentYear = date.getFullYear();
+            
+            // 更新当前月份标题
+            const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+            currentMonthEl.textContent = `${currentYear}年 ${monthNames[currentMonth]}`;
+            
+            // 获取当前月份的第一天
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            
+            // 获取当前月份的最后一天
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            
+            // 获取第一天是星期几 (0-6, 0 表示星期日)
+            const firstDayOfWeek = firstDay.getDay();
+            
+            // 添加上个月的最后几天
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('calendar-day', 'text-center', 'py-2', 'text-gray-400', 'bg-gray-50', 'rounded-lg');
+                
+                const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
+                const dayNumber = prevMonthLastDay - (firstDayOfWeek - i - 1);
+                
+                dayElement.innerHTML = `
+                    <div class="text-sm">${dayNumber}</div>
+                    <div class="text-xs"></div>
+                `;
+                
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // 添加当前月份的天数
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            for (let i = 1; i <= lastDay.getDate(); i++) {
+                const currentDate = new Date(currentYear, currentMonth, i);
+                currentDate.setHours(0, 0, 0, 0);
+                
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('calendar-day', 'text-center', 'py-2', 'rounded-lg', 'cursor-pointer', 'transition-all', 'duration-300');
+                
+                // 检查是否是今天
+                const isToday = currentDate.getTime() === today.getTime();
+                
+                // 检查是否是过去的日期
+                const isPast = currentDate < today;
+                
+                // 获取当天的用量
+                const { dosage, type } = getDosageForDate(currentDate);
+                
+                // 设置样式
+                if (isToday) {
+                    dayElement.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+                }
+                
+                if (isPast) {
+                    dayElement.classList.add('bg-gray-100');
+                } else {
+                    dayElement.classList.add('hover:bg-blue-50');
+                    
+                    if (type === 'A') {
+                        dayElement.classList.add('bg-primary/10');
+                    } else {
+                        dayElement.classList.add('bg-accent/10');
+                    }
+                }
+                
+                // 设置内容
+                dayElement.innerHTML = `
+                    <div class="text-sm ${isToday ? 'font-bold' : ''}">${i}</div>
+                    <div class="text-xs font-medium ${type === 'A' ? 'text-primary' : 'text-accent'}">${dosage} 片</div>
+                `;
+                
+                // 添加点击事件
+                dayElement.addEventListener('click', () => showDateDetail(currentDate));
+                
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // 计算需要添加的下个月天数
+            const totalDaysAdded = firstDayOfWeek + lastDay.getDate();
+            const remainingCells = 42 - totalDaysAdded; // 6行7列 = 42个单元格
+            
+            // 添加下个月的开始几天
+            for (let i = 1; i <= remainingCells; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('calendar-day', 'text-center', 'py-2', 'text-gray-400', 'bg-gray-50', 'rounded-lg');
+                
+                dayElement.innerHTML = `
+                    <div class="text-sm">${i}</div>
+                    <div class="text-xs"></div>
+                `;
+                
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+        
+        // 获取指定日期的用量
+        function getDosageForDate(date) {
+            // 计算从开始日期到指定日期的天数差
+            const timeDiff = date.getTime() - settings.startDate.getTime();
+            const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+            
+            // 如果是开始日期之前，返回默认用量A
+            if (dayDiff < 0) {
+                return {
+                    dosage: settings.dosageA,
+                    type: 'A'
+                };
+            }
+            
+            // 偶数天使用用量A，奇数天使用用量B
+            if (dayDiff % 2 === 0) {
+                return {
+                    dosage: settings.dosageA,
+                    type: 'A'
+                };
+            } else {
+                return {
+                    dosage: settings.dosageB,
+                    type: 'B'
+                };
+            }
+        }
+        
+        // 更新今日用量信息
+        function updateTodayInfo() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const { dosage, type } = getDosageForDate(today);
+            
+            todayDosageEl.textContent = `${dosage} 片`;
+            
+            // 根据用量类型设置颜色
+            if (type === 'A') {
+                todayDosageEl.classList.remove('text-accent');
+                todayDosageEl.classList.add('text-primary');
+            } else {
+                todayDosageEl.classList.remove('text-primary');
+                todayDosageEl.classList.add('text-accent');
+            }
+        }
+        
+        // 显示日期详情
+        function showDateDetail(date) {
+            // 保存当前查看的日期
+            window.currentDetailDate = new Date(date);
+            
+            // 格式化日期
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const weekDay = weekDays[date.getDay()];
+            
+            modalDateTitle.textContent = `${year}年${month}月${day}日 ${weekDay}`;
+            
+            // 获取用量信息
+            const { dosage, type } = getDosageForDate(date);
+            
+            modalDosage.textContent = `${dosage} 片`;
+            
+            // 设置用量类型标签
+            if (type === 'A') {
+                modalDosageType.textContent = `用量 A`;
+                modalDosageType.classList.remove('badge-accent');
+                modalDosageType.classList.add('badge-primary');
+                modalDosage.classList.remove('text-accent');
+                modalDosage.classList.add('text-primary');
+            } else {
+                modalDosageType.textContent = `用量 B`;
+                modalDosageType.classList.remove('badge-primary');
+                modalDosageType.classList.add('badge-accent');
+                modalDosage.classList.remove('text-primary');
+                modalDosage.classList.add('text-accent');
+            }
+            
+            // 显示弹窗
+            dateDetailModal.classList.remove('hidden');
+        }
+        
+        // 添加事件监听器
+        function addEventListeners() {
+            // 设置按钮点击事件
+            settingsBtn.addEventListener('click', () => {
+                settingsPanel.classList.remove('hidden');
+            });
+            
+            // 关闭设置面板
+            closeSettings.addEventListener('click', () => {
+                settingsPanel.classList.add('hidden');
+            });
+            
+            // 设置表单提交
+            settingsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // 获取表单数据
+                settings.dosageA = parseFloat(dosageAInput.value);
+                settings.dosageB = parseFloat(dosageBInput.value);
+                settings.startDate = new Date(startDateInput.value);
+                
+                // 保存设置
+                saveSettings();
+                
+                // 更新日历和今日用量信息
+                renderCalendar(currentDate);
+                updateTodayInfo();
+                
+                // 关闭设置面板
+                settingsPanel.classList.add('hidden');
+                
+                // 显示成功提示
+                showToast('设置已保存');
+            });
+            
+            // 上一个月按钮
             prevMonthBtn.addEventListener('click', () => {
                 currentDate.setMonth(currentDate.getMonth() - 1);
                 renderCalendar(currentDate);
             });
             
+            // 下一个月按钮
             nextMonthBtn.addEventListener('click', () => {
                 currentDate.setMonth(currentDate.getMonth() + 1);
                 renderCalendar(currentDate);
             });
             
-            saveSettingsBtn.addEventListener('click', saveSettings);
-            
-            closeModalBtn.addEventListener('click', () => {
-                dateModal.classList.add('hidden');
+            // 今天按钮
+            todayBtn.addEventListener('click', () => {
+                currentDate = new Date();
+                renderCalendar(currentDate);
             });
             
-            confirmModalBtn.addEventListener('click', () => {
-                dateModal.classList.add('hidden');
+            // 关闭日期详情弹窗
+            closeModal.addEventListener('click', () => {
+                dateDetailModal.classList.add('hidden');
             });
-        }
-
-        // 渲染日历
-        function renderCalendar(date) {
-            const year = date.getFullYear();
-            const month = date.getMonth();
             
-            // 更新当前月份显示
-            currentMonthEl.textContent = `${year}年${month + 1}月`;
+            // 上一天按钮
+            prevDateBtn.addEventListener('click', () => {
+                const prevDate = new Date(window.currentDetailDate);
+                prevDate.setDate(prevDate.getDate() - 1);
+                showDateDetail(prevDate);
+            });
             
-            // 清空日历网格
-            calendarGrid.innerHTML = '';
+            // 下一天按钮
+            nextDateBtn.addEventListener('click', () => {
+                const nextDate = new Date(window.currentDetailDate);
+                nextDate.setDate(nextDate.getDate() + 1);
+                showDateDetail(nextDate);
+            });
             
-            // 获取当月第一天
-            const firstDay = new Date(year, month, 1);
-            // 获取当月最后一天
-            const lastDay = new Date(year, month + 1, 0);
-            
-            // 获取当月第一天是星期几 (0-6)
-            const firstDayOfWeek = firstDay.getDay();
-            
-            // 添加空白单元格
-            for (let i = 0; i < firstDayOfWeek; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'calendar-day empty bg-gray-50 rounded-lg';
-                calendarGrid.appendChild(emptyCell);
-            }
-            
-            // 添加日期单元格
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            for (let i = 1; i <= lastDay.getDate(); i++) {
-                const dateCell = document.createElement('div');
-                const cellDate = new Date(year, month, i);
-                cellDate.setHours(0, 0, 0, 0);
-                
-                // 计算剂量
-                const dose = calculateDose(cellDate);
-                
-                // 设置单元格样式
-                dateCell.className = 'calendar-day rounded-lg p-1 cursor-pointer';
-                
-                // 如果是今天，添加高亮样式
-                if (cellDate.getTime() === today.getTime()) {
-                    dateCell.classList.add('bg-primary', 'text-white', 'dose-highlight');
-                } else if (cellDate < today) {
-                    // 过去的日期
-                    dateCell.classList.add('bg-gray-100');
-                } else {
-                    // 未来的日期
-                    dateCell.classList.add('bg-white', 'hover:bg-blue-50', 'border', 'border-gray-200');
+            // 点击弹窗外部关闭弹窗
+            settingsPanel.addEventListener('click', (e) => {
+                if (e.target === settingsPanel) {
+                    settingsPanel.classList.add('hidden');
                 }
-                
-                // 添加日期和剂量
-                dateCell.innerHTML = `
-                    <span class="text-lg font-medium">${i}</span>
-                    <span class="text-xs ${cellDate < today ? 'text-gray-500' : 'text-primary'}">${dose}片</span>
-                `;
-                
-                // 添加点击事件
-                dateCell.addEventListener('click', () => {
-                    showDateDetails(cellDate);
-                });
-                
-                calendarGrid.appendChild(dateCell);
-            }
+            });
+            
+            dateDetailModal.addEventListener('click', (e) => {
+                if (e.target === dateDetailModal) {
+                    dateDetailModal.classList.add('hidden');
+                }
+            });
         }
-
-        // 计算给定日期的剂量
-        function calculateDose(date) {
-            // 计算从开始日期到给定日期的天数差
-            const timeDiff = date.getTime() - startDate.getTime();
-            const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+        
+        // 显示提示消息
+        function showToast(message) {
+            // 创建提示元素
+            const toast = document.createElement('div');
+            toast.classList.add('fixed', 'bottom-4', 'left-1/2', 'transform', '-translate-x-1/2', 'bg-gray-800', 'text-white', 'px-4', 'py-2', 'rounded-lg', 'z-50', 'transition-opacity', 'duration-300');
+            toast.textContent = message;
             
-            // 如果是开始日期之前，返回0
-            if (dayDiff < 0) return 0;
+            // 添加到页面
+            document.body.appendChild(toast);
             
-            // 循环使用剂量1和剂量2
-            return dayDiff % 2 === 0 ? dose1 : dose2;
+            // 淡出效果
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 2000);
         }
-
-        // 保存设置
-        function saveSettings() {
-            dose1 = parseFloat(dose1Input.value);
-            dose2 = parseFloat(dose2Input.value);
-            startDate = new Date(startDateInput.value);
-            startDate.setHours(0, 0, 0, 0);
-            
-            // 验证输入
-            if (isNaN(dose1) || isNaN(dose2) || dose1 <= 0 || dose2 <= 0) {
-                alert('请输入有效的剂量值');
-                return;
-            }
-            
-            // 保存到本地存储
-            localStorage.setItem('medicationSettings', JSON.stringify({
-                dose1,
-                dose2,
-                startDate: startDate.toISOString()
-            }));
-            
-            // 更新日历和今日提示
-            renderCalendar(currentDate);
-            updateTodayInfo();
-            
-            // 显示保存成功提示
-            alert('设置已保存');
-        }
-
-        // 从本地存储加载设置
-        function loadSettings() {
-            const savedSettings = localStorage.getItem('medicationSettings');
-            if (savedSettings) {
-                const settings = JSON.parse(savedSettings);
-                dose1 = settings.dose1;
-                dose2 = settings.dose2;
-                startDate = new Date(settings.startDate);
-                
-                // 更新输入框
-                dose1Input.value = dose1;
-                dose2Input.value = dose2;
-                startDateInput.valueAsDate = startDate;
-            } else {
-                // 默认设置
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                startDate = today;
-                startDateInput.valueAsDate = startDate;
-            }
-        }
-
-        // 更新今日提示
-        function updateTodayInfo() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            const dose = calculateDose(today);
-            
-            // 格式化日期
-            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-            const formattedDate = today.toLocaleDateString('zh-CN', options);
-            
-            todayInfoEl.innerHTML = `
-                <p class="text-gray-600 mb-2">${formattedDate}</p>
-                <p class="text-lg font-medium text-gray-700">今日药物用量</p>
-                <div id="todayDose" class="text-3xl font-bold text-primary mt-2">${dose} 片</div>
-            `;
-        }
-
-        // 显示日期详情
-        function showDateDetails(date) {
-            // 格式化日期
-            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-            const formattedDate = date.toLocaleDateString('zh-CN', options);
-            
-            // 计算剂量
-            const dose = calculateDose(date);
-            
-            // 更新模态框内容
-            modalDate.textContent = formattedDate;
-            modalDose.textContent = `${dose} 片`;
-            
-            // 显示模态框
-            dateModal.classList.remove('hidden');
-        }
-
+        
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', init);
     </script>
